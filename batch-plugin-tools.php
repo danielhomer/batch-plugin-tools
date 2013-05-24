@@ -4,7 +4,7 @@
 	Description: Batch plugin tools for multisite installs.
 	Version: 0.3
 	Author: Daniel Homer
-	Author URI: http://informatandm.com
+	Author URI: http://danielhomer.me
  */
 
 require_once( 'itm-common.php' );
