@@ -1,0 +1,23 @@
+#container {
+	margin: 5px;
+}
+
+#explorer {
+	background-color: #ececec;
+	border-radius: 3px;
+	padding: 10px;
+	border: 1px solid #dfdfdf;
+}
+
+#plugins-ajax {
+	margin-top: 10px;
+}
+
+tr#no-plugins, tr#loading-ajax {
+	text-align: center;
+}
+
+tr#no-plugins td, tr#loading-ajax td {
+	padding: 20px 0;
+	text-align: center;
+}
