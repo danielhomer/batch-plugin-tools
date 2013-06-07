@@ -2,7 +2,7 @@
 /*
 	Plugin Name: Batch Plugin Tools
 	Description: Batch plugin tools for multisite installs.
-	Version: 0.3
+	Version: 0.4
 	Author: Daniel Homer
 	Author URI: http://danielhomer.me
  */
@@ -16,6 +16,9 @@ define( "BATCH_PLUGINS_DIR", plugins_url( '', 'batch-plugin-tools/batch-plugin-t
 
 add_action( 'admin_menu', array( 'BatchPlugins', 'add_submenu' ) );
 add_action( 'wp_ajax_get_response', array( 'BatchPlugins', 'ajax_get_response' ) );
+
+if ( isset( $_GET['action'] ) && $_GET['action'] == 'plugin-report' )
+	add_action( 'admin_init', array( 'BatchPlugins', 'active_plugin_report' ) );
 
 class BatchPlugins {
 
@@ -232,6 +235,75 @@ class BatchPlugins {
 	 */
 	private static function loading_ajax_row() {
 		return '<tr id="loading-ajax"><td colspan="3"><img src="' . BATCH_PLUGINS_DIR . '/images/ajax-loader.gif" alt="Loading..." title="Loading..." /></td></tr>';
+	}
+
+	/**
+	 * Compiles a report of all of the plugins on the server along with the URLs of the sites on
+	 * which they are active.
+	 *
+	 * To get around timout issues on large installations, the export is written to a file in
+	 * the 'reports' directory so it can be retrieved manually later.
+	 *
+	 * @since 0.4
+	 */
+	public static function active_plugin_report() {
+		$prefixes = ItmCommon::get_site_prefixes();
+		$plugins = array();
+		
+		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+			$export_dir = dirname(__FILE__) . '\\reports\\';
+		} else {
+			$export_dir = dirname(__FILE__) . '/reports/';
+		}
+
+				if ( ! $prefixes || ! is_array( $prefixes ) )
+			return;
+
+		foreach( $prefixes as $prefix ) {
+			set_time_limit(120);
+			$site = new ItmSite( $prefix );
+			$active_plugins = $site->plugins( true );
+			$inactive_plugins = $site->plugins( false );
+			
+			if ( is_array( $active_plugins ) ) {
+				foreach ( $active_plugins as $path => $active_plugin )
+					$plugins[ $active_plugin['Name'] ][] = $site->url();
+			}
+
+			if ( is_array( $inactive_plugins ) ) {
+			foreach ( $inactive_plugins as $path => $inactive_plugin ) 
+				if ( ! array_key_exists( $inactive_plugin['Name'] , $plugins) )
+					$plugins[ $inactive_plugin['Name'] ] = null;
+			}
+		}
+
+		if ( empty( $plugins ) )
+			return;
+
+		$filename = $export_dir . 'plugin_report.csv';
+
+		if ( file_exists( $filename ) ) unset( $filename );
+
+		$file = fopen( $filename, 'w' );
+
+		foreach ( $plugins as $key => $unescaped_value ) {
+			$site_list = '';
+			if ( is_array( $unescaped_value ) ) {
+				foreach ( $unescaped_value as $value  )
+					$site_list .= $value . ',';
+			}
+			fwrite( $file, $key . "," . $site_list . "\n" );
+		}
+
+		fclose( $file );
+
+		header("Content-type: text/csv",true,200);
+		header('Content-Disposition: attachment; filename="plugin_report.csv"');
+		header("Pragma: no-cache");
+    	header("Expires: 0");
+    	readfile($filename);
+		
+		exit;
 	}
 
 }
