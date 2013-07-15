@@ -250,17 +250,17 @@ class BatchPlugins {
 		$prefixes = ItmCommon::get_site_prefixes();
 		$plugins = array();
 		
-		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-			$export_dir = dirname(__FILE__) . '\\reports\\';
+		if ( strtoupper( substr( PHP_OS, 0, 3 ) ) === 'WIN' ) {
+			$export_dir = dirname( __FILE__ ) . '\\reports\\';
 		} else {
-			$export_dir = dirname(__FILE__) . '/reports/';
+			$export_dir = dirname( __FILE__ ) . '/reports/';
 		}
 
 				if ( ! $prefixes || ! is_array( $prefixes ) )
 			return;
 
 		foreach( $prefixes as $prefix ) {
-			set_time_limit(120);
+			set_time_limit( 120 );
 			$site = new ItmSite( $prefix );
 			$active_plugins = $site->plugins( true );
 			$inactive_plugins = $site->plugins( false );
@@ -297,11 +297,11 @@ class BatchPlugins {
 
 		fclose( $file );
 
-		header("Content-type: text/csv",true,200);
-		header('Content-Disposition: attachment; filename="plugin_report.csv"');
-		header("Pragma: no-cache");
-    	header("Expires: 0");
-    	readfile($filename);
+		header( "Content-type: text/csv", true, 200 );
+		header( 'Content-Disposition: attachment; filename="plugin_report.csv"' );
+		header( "Pragma: no-cache" );
+    	header( "Expires: 0" );
+    	readfile( $filename );
 		
 		exit;
 	}
